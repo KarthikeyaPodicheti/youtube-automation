@@ -1,0 +1,62 @@
+name: 🚜 FARMERLIFE2.0 YouTube Upload
+
+permissions:
+  contents: write
+
+on:
+  schedule:
+    # 3 uploads per day at 10:30 AM, 2:00 PM, and 9:30 PM IST
+    - cron: '0 5 * * *'    # 10:30 AM IST
+    - cron: '30 8 * * *'   # 2:00 PM IST  
+    - cron: '0 16 * * *'   # 9:30 PM IST
+  workflow_dispatch:       # Manual trigger
+
+jobs:
+  upload-video:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        pip install google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client httplib2
+
+    - name: Create credential files from secrets
+      run: |
+        python3 << 'EOF'
+        import base64
+        import os
+
+        # Decode client_secret.json
+        client_secret = os.environ['GOOGLE_CLIENT_SECRET'].strip()
+        with open('client_secret.json', 'wb') as f:
+            f.write(base64.b64decode(client_secret))
+
+        # Decode service-account-key.json  
+        service_account = os.environ['GOOGLE_SERVICE_ACCOUNT'].strip()
+        with open('service-account-key.json', 'wb') as f:
+            f.write(base64.b64decode(service_account))
+
+        print("✅ Credentials created successfully")
+        EOF
+      env:
+        GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+        GOOGLE_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
+
+    - name: Run FARMERLIFE2.0 upload script
+      run: python upload_scheduled.py
+
+    - name: Update tracking files and commit refreshed token
+      run: |
+        git config --local user.email "farmerlife-automation@github.com"
+        git config --local user.name "FARMERLIFE2.0 Bot"
+        git add processed_videos.json upload_history.json daily_upload_count.json token.pickle || true
+        git diff --cached --quiet || git commit -m "🚜 Update upload tracking and refresh token [skip ci]"
+        git push || true
