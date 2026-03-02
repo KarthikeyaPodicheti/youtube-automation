@@ -3,7 +3,7 @@ name: YouTube Automation
 on:
   schedule:
     # Runs three times a day: at 00:00, 08:00, and 16:00 UTC
-    - cron: "0 0,8,16 * * *"
+    - cron: "0 4,9,16 * * *"
   workflow_dispatch:
     # Allows manual triggering of this workflow from GitHub
 
