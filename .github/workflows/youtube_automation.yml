@@ -1,0 +1,45 @@
+name: YouTube Video Upload
+
+on:
+  schedule:
+    # Runs daily at 10:30 AM, 2:00 PM, 9:30 PM IST
+    - cron: "0 5 * * *"
+    - cron: "30 8 * * *"
+    - cron: "0 16 * * *"
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.9'
+
+    - name: Install Dependencies
+      run: |
+        pip install --upgrade pip
+        pip install google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client
+        pip install --no-cache-dir google-cloud-storage
+
+    - name: Decode YouTube Token
+      env:
+        TOKEN_PICKLE: ${{ secrets.YOUTUBE_TOKEN }}
+      run: echo "$TOKEN_PICKLE" | base64 -d > token.pickle
+
+    - name: Decode Google Client Secret
+      env:
+        CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+      run: echo "$CLIENT_SECRET" | base64 -d > client_secret.json
+
+    - name: Decode Service Account Key
+      env:
+        SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
+      run: echo "$SERVICE_ACCOUNT_KEY" | base64 -d > service-account-key.json
+
+    - name: Run Upload Script
+      run: python upload_scheduled.py
