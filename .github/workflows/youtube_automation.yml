@@ -1,45 +1,38 @@
-name: YouTube Video Upload
+name: YouTube Automation
 
 on:
   schedule:
-    # Runs daily at 10:30 AM, 2:00 PM, 9:30 PM IST
-    - cron: "0 5 * * *"
-    - cron: "30 8 * * *"
-    - cron: "0 16 * * *"
+    # Runs three times a day: at 00:00, 08:00, and 16:00 UTC
+    - cron: "0 0,8,16 * * *"
+  workflow_dispatch:
+    # Allows manual triggering of this workflow from GitHub
 
 jobs:
   upload:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v2
+      # Checkout code from the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v3
-      with:
-        python-version: '3.9'
+      # Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
 
-    - name: Install Dependencies
-      run: |
-        pip install --upgrade pip
-        pip install google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client
-        pip install --no-cache-dir google-cloud-storage
+      # Install dependencies
+      - name: Install dependencies
+        run: |
+          python -m venv env
+          source env/bin/activate
+          pip install -r requirements.txt
 
-    - name: Decode YouTube Token
-      env:
-        TOKEN_PICKLE: ${{ secrets.YOUTUBE_TOKEN }}
-      run: echo "$TOKEN_PICKLE" | base64 -d > token.pickle
-
-    - name: Decode Google Client Secret
-      env:
-        CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-      run: echo "$CLIENT_SECRET" | base64 -d > client_secret.json
-
-    - name: Decode Service Account Key
-      env:
-        SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
-      run: echo "$SERVICE_ACCOUNT_KEY" | base64 -d > service-account-key.json
-
-    - name: Run Upload Script
-      run: python upload_scheduled.py
+      # Run the upload script
+      - name: Run upload script
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+        run: |
+          source env/bin/activate
+          python upload_scheduled.py
