@@ -23,7 +23,7 @@ from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
 DRIVE_FOLDER_ID = "1kocgFg0rzsMCtXsrWiOH_oditWshBpbV"   # Your Google Drive folder
 PROCESSED_LOG   = "processed_videos.json"
 TOKEN_FILE      = "token.pickle"
-SERVICE_ACCOUNT = "service-account-key.json"
+SERVICE_ACCOUNT = "google_service_account.json"   # already committed to repo
 
 SCOPES_YOUTUBE = ["https://www.googleapis.com/auth/youtube.upload"]
 

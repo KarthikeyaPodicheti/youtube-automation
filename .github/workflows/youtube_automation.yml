@@ -43,23 +43,17 @@ jobs:
                   f.write(base64.b64decode(client_secret))
               print("✅ client_secret.json written")
 
-          # Decode GOOGLE_SERVICE_ACCOUNT → service-account-key.json
-          service_account = os.environ.get("GOOGLE_SERVICE_ACCOUNT", "").strip()
-          if not service_account:
-              errors.append("❌ GOOGLE_SERVICE_ACCOUNT secret is missing!")
-          else:
-              with open("service-account-key.json", "wb") as f:
-                  f.write(base64.b64decode(service_account))
-              print("✅ service-account-key.json written")
-
-          # Decode GOOGLE_TOKEN → token.pickle
+          # Decode GOOGLE_TOKEN → token.pickle (YouTube OAuth)
           token = os.environ.get("GOOGLE_TOKEN", "").strip()
           if not token:
-              errors.append("❌ GOOGLE_TOKEN secret is missing! Generate token.pickle locally first.")
+              errors.append("❌ GOOGLE_TOKEN secret is missing!")
           else:
               with open("token.pickle", "wb") as f:
                   f.write(base64.b64decode(token))
               print("✅ token.pickle written")
+
+          # google_service_account.json is already in the repo — no decode needed
+          print("✅ google_service_account.json already present in repo")
 
           if errors:
               for e in errors:
@@ -67,9 +61,9 @@ jobs:
               sys.exit(1)
           EOF
         env:
-          GOOGLE_CLIENT_SECRET:  ${{ secrets.GOOGLE_CLIENT_SECRET }}
-          GOOGLE_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
-          GOOGLE_TOKEN:           ${{ secrets.GOOGLE_TOKEN }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_TOKEN:          ${{ secrets.GOOGLE_TOKEN }}
+
 
       - name: Run upload script
         run: python upload_scheduled.py
