@@ -2,37 +2,82 @@ name: YouTube Automation
 
 on:
   schedule:
-    # Runs three times a day: at 00:00, 08:00, and 16:00 UTC
-    - cron: "0 4,9,16 * * *"
-  workflow_dispatch:
-    # Allows manual triggering of this workflow from GitHub
+    # 3 uploads per day (IST times)
+    - cron: '0 5 * * *'    # 10:30 AM IST
+    - cron: '30 8 * * *'   # 2:00 PM IST
+    - cron: '0 16 * * *'   # 9:30 PM IST
+  workflow_dispatch:       # Manual trigger from GitHub UI
+
+permissions:
+  contents: write
 
 jobs:
   upload:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout code from the repository
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      # Set up Python
-      - name: Set up Python
+      - name: Set up Python 3.11
         uses: actions/setup-python@v4
         with:
-          python-version: 3.11
+          python-version: '3.11'
 
-      # Install dependencies
       - name: Install dependencies
-        run: |
-          python -m venv env
-          source env/bin/activate
-          pip install -r requirements.txt
+        run: pip install -r requirements.txt
 
-      # Run the upload script
-      - name: Run upload script
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+      - name: Decode credentials from GitHub Secrets
         run: |
-          source env/bin/activate
-          python upload_scheduled.py
+          python3 << 'EOF'
+          import base64, os, sys
+
+          errors = []
+
+          # Decode GOOGLE_CLIENT_SECRET → client_secret.json
+          client_secret = os.environ.get("GOOGLE_CLIENT_SECRET", "").strip()
+          if not client_secret:
+              errors.append("❌ GOOGLE_CLIENT_SECRET secret is missing!")
+          else:
+              with open("client_secret.json", "wb") as f:
+                  f.write(base64.b64decode(client_secret))
+              print("✅ client_secret.json written")
+
+          # Decode GOOGLE_SERVICE_ACCOUNT → service-account-key.json
+          service_account = os.environ.get("GOOGLE_SERVICE_ACCOUNT", "").strip()
+          if not service_account:
+              errors.append("❌ GOOGLE_SERVICE_ACCOUNT secret is missing!")
+          else:
+              with open("service-account-key.json", "wb") as f:
+                  f.write(base64.b64decode(service_account))
+              print("✅ service-account-key.json written")
+
+          # Decode GOOGLE_TOKEN → token.pickle
+          token = os.environ.get("GOOGLE_TOKEN", "").strip()
+          if not token:
+              errors.append("❌ GOOGLE_TOKEN secret is missing! Generate token.pickle locally first.")
+          else:
+              with open("token.pickle", "wb") as f:
+                  f.write(base64.b64decode(token))
+              print("✅ token.pickle written")
+
+          if errors:
+              for e in errors:
+                  print(e)
+              sys.exit(1)
+          EOF
+        env:
+          GOOGLE_CLIENT_SECRET:  ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
+          GOOGLE_TOKEN:           ${{ secrets.GOOGLE_TOKEN }}
+
+      - name: Run upload script
+        run: python upload_scheduled.py
+
+      - name: Commit updated tracking files and refreshed token
+        run: |
+          git config --local user.email "youtube-automation@github.com"
+          git config --local user.name "YouTube Automation Bot"
+          git add processed_videos.json upload_history.json daily_upload_count.json token.pickle || true
+          git diff --cached --quiet || git commit -m "🤖 Upload tracking update [skip ci]"
+          git push || true
