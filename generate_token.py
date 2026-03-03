@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-Run this script ONCE locally to authenticate with YouTube.
+Run this script ONCE locally to authenticate with YouTube AND Google Drive.
 It will open a browser, ask you to log into your YouTube channel account,
 and save token.pickle which you'll then upload to GitHub Secrets.
 
 Usage:
-    pip install google-auth google-auth-oauthlib google-api-python-client
+    source /tmp/env/bin/activate
     python3 generate_token.py
 """
 
@@ -14,7 +14,12 @@ import pickle
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 
-SCOPES = ["https://www.googleapis.com/auth/youtube.upload"]
+# Both scopes — Drive read + YouTube upload (must match upload_scheduled.py)
+SCOPES = [
+    "https://www.googleapis.com/auth/youtube.upload",
+    "https://www.googleapis.com/auth/drive.readonly",
+]
+
 CLIENT_SECRET = "client_secret.json"
 TOKEN_FILE = "token.pickle"
 
@@ -26,8 +31,8 @@ def main():
         print(f"  Rename it to '{CLIENT_SECRET}' and place it in this folder.")
         return
 
-    print("🌐 Opening browser for YouTube authentication...")
-    print("   ⚠️  Make sure to log in with the correct YouTube channel account!\n")
+    print("🌐 Opening browser for Google authentication (YouTube + Drive)...")
+    print("   ⚠️  Log in with the Google account that OWNS your YouTube channel!\n")
 
     flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRET, SCOPES)
     creds = flow.run_local_server(port=0)
@@ -36,21 +41,43 @@ def main():
         pickle.dump(creds, f)
 
     print(f"\n✅ token.pickle saved successfully!")
+    print(f"   Scopes granted: YouTube upload + Drive read\n")
 
-    # Verify it works
-    youtube = build("youtube", "v3", credentials=creds, cache_discovery=False)
-    response = youtube.channels().list(part="snippet", mine=True).execute()
-    if response.get("items"):
-        channel_name = response["items"][0]["snippet"]["title"]
-        print(f"✅ Authenticated as channel: '{channel_name}'")
-    else:
-        print("⚠️  Authenticated but no YouTube channel found for this account.")
+    # Verify YouTube
+    try:
+        youtube = build("youtube", "v3", credentials=creds, cache_discovery=False)
+        response = youtube.channels().list(part="snippet", mine=True).execute()
+        if response.get("items"):
+            channel_name = response["items"][0]["snippet"]["title"]
+            print(f"✅ YouTube channel: '{channel_name}'")
+        else:
+            print("⚠️  No YouTube channel found for this account.")
+    except Exception as e:
+        print(f"⚠️  YouTube check failed: {e}")
+
+    # Verify Drive
+    try:
+        drive = build("drive", "v3", credentials=creds, cache_discovery=False)
+        result = drive.files().list(
+            q=f"'1kocgFg0rzsMCtXsrWiOH_oditWshBpbV' in parents and trashed = false",
+            pageSize=5,
+            fields="files(name)"
+        ).execute()
+        files = result.get("files", [])
+        print(f"✅ Drive folder accessible — {len(files)} file(s) visible")
+        if files:
+            for f in files[:3]:
+                print(f"   → {f['name']}")
+    except Exception as e:
+        print(f"⚠️  Drive check failed: {e}")
+        print("   Make sure you shared the Drive folder with your Google account!")
 
     print("\n📋 Next steps:")
-    print("   1. Run this command to get the base64 encoded token:")
-    print("      base64 -i token.pickle | pbcopy    (Mac - copies to clipboard)")
-    print("   2. Go to your GitHub repo → Settings → Secrets → Actions")
-    print("   3. Add a secret named GOOGLE_TOKEN and paste the base64 value")
+    print("   1. Run this to encode token.pickle:")
+    print("      python3 -c \"import base64; open('/tmp/google_token_b64.txt','w').write(base64.b64encode(open('token.pickle','rb').read()).decode())\"")
+    print("   2. Open /tmp/google_token_b64.txt, select all, copy")
+    print("   3. Paste as GitHub Secret: GOOGLE_TOKEN")
+    print("      github.com/KarthikeyaPodicheti/youtube-automation/settings/secrets/actions")
 
 if __name__ == "__main__":
     main()

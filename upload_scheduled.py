@@ -2,9 +2,9 @@
 """
 YouTube Automation Upload Script
 Fetches a random unprocessed video from Google Drive and uploads it to YouTube.
-Uses:
- - Service Account JSON  → for Drive access (read videos)
- - token.pickle (OAuth)  → for YouTube upload (must be pre-generated locally)
+
+Uses ONE OAuth token (token.pickle) for BOTH Drive and YouTube.
+No service account needed — eliminates the JWT signature issue entirely.
 """
 
 import os
@@ -13,19 +13,21 @@ import pickle
 import random
 import sys
 from datetime import datetime
-from google.oauth2 import service_account
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
 
 # ─── CONFIG ────────────────────────────────────────────────────────────────────
-DRIVE_FOLDER_ID = "1kocgFg0rzsMCtXsrWiOH_oditWshBpbV"   # Your Google Drive folder
+DRIVE_FOLDER_ID = "1kocgFg0rzsMCtXsrWiOH_oditWshBpbV"
 PROCESSED_LOG   = "processed_videos.json"
 TOKEN_FILE      = "token.pickle"
-SERVICE_ACCOUNT = "google_service_account.json"   # already committed to repo
 
-SCOPES_YOUTUBE = ["https://www.googleapis.com/auth/youtube.upload"]
+# Both scopes in one token — Drive read + YouTube upload
+SCOPES = [
+    "https://www.googleapis.com/auth/youtube.upload",
+    "https://www.googleapis.com/auth/drive.readonly",
+]
 
 TITLES = [
     "What Happens Next Will Surprise You! 😲",
@@ -40,65 +42,44 @@ TITLES = [
     "Watch This Before It's Gone! ⚡",
 ]
 
-DESCRIPTION = """
-Experience the magic of Hindi short stories. These tales are captivating,
+DESCRIPTION = """Experience the magic of Hindi short stories. These tales are captivating,
 filled with life lessons, and spark joy and imagination.
 Subscribe for daily uploads! 🔔
 
-#HindiStories #Animation #ShortStories #KidsContent #MagicalTales
-"""
+#HindiStories #Animation #ShortStories #KidsContent #MagicalTales"""
 
 TAGS = ["Hindi animation", "short stories", "magical tales", "family content", "kids friendly", "Hindi"]
 
 # ─── CREDENTIALS ───────────────────────────────────────────────────────────────
 
-def get_youtube_credentials():
+def get_credentials():
     """
-    Load YouTube OAuth credentials from token.pickle.
-    Auto-refreshes if expired. Never opens a browser (safe for CI).
+    Load OAuth credentials from token.pickle.
+    Works for BOTH YouTube and Drive — no service account needed.
+    Auto-refreshes if expired. Safe for CI/GitHub Actions.
     """
     if not os.path.exists(TOKEN_FILE):
         raise RuntimeError(
             f"'{TOKEN_FILE}' not found!\n"
-            "Generate it locally first (run this script locally once to authenticate),\n"
-            "then base64-encode it and add it as the GOOGLE_TOKEN GitHub Secret."
+            "Run generate_token.py locally to create it, then add as GOOGLE_TOKEN secret."
         )
 
-    # token.pickle can be either a real pickle file OR a JSON string (from creds.to_json())
-    try:
-        with open(TOKEN_FILE, "rb") as f:
-            creds = pickle.load(f)
-    except Exception:
-        # Fallback: treat as JSON (our new format)
-        creds = Credentials.from_authorized_user_file(TOKEN_FILE, SCOPES_YOUTUBE)
+    with open(TOKEN_FILE, "rb") as f:
+        creds = pickle.load(f)
 
     if creds.expired and creds.refresh_token:
-        print("🔄 YouTube token expired — refreshing...")
+        print("🔄 Token expired — refreshing...")
         creds.refresh(Request())
-        # Save refreshed token back so the workflow can commit it
         with open(TOKEN_FILE, "wb") as f:
             pickle.dump(creds, f)
         print("✅ Token refreshed and saved.")
     elif not creds.valid:
         raise RuntimeError(
-            "YouTube credentials are invalid and cannot be refreshed automatically.\n"
-            "Please re-authenticate locally, re-encode the token, and update the GOOGLE_TOKEN secret."
+            "Credentials are invalid and cannot be refreshed automatically.\n"
+            "Re-run generate_token.py locally, re-encode, and update GOOGLE_TOKEN secret."
         )
 
     return creds
-
-
-def get_drive_credentials():
-    """Service Account credentials for reading Google Drive."""
-    if not os.path.exists(SERVICE_ACCOUNT):
-        raise RuntimeError(
-            f"'{SERVICE_ACCOUNT}' not found!\n"
-            "Add the GOOGLE_SERVICE_ACCOUNT secret (base64-encoded service-account-key.json)."
-        )
-    return service_account.Credentials.from_service_account_file(
-        SERVICE_ACCOUNT,
-        scopes=["https://www.googleapis.com/auth/drive.readonly"]
-    )
 
 
 # ─── DRIVE ─────────────────────────────────────────────────────────────────────
@@ -166,7 +147,7 @@ def upload_to_youtube(youtube, local_path, title):
             "title": title,
             "description": DESCRIPTION,
             "tags": TAGS,
-            "categoryId": "24",  # Entertainment
+            "categoryId": "24",
         },
         "status": {
             "privacyStatus": "public",
@@ -189,7 +170,7 @@ def upload_to_youtube(youtube, local_path, title):
 # ─── TRACKING ──────────────────────────────────────────────────────────────────
 
 def update_tracking(video_id, title, processed, video_file_id):
-    """Update processed_videos.json, upload_history.json, and daily_upload_count.json."""
+    """Update processed_videos.json, upload_history.json, daily_upload_count.json."""
     processed.add(video_file_id)
     with open(PROCESSED_LOG, "w") as f:
         json.dump(list(processed), f)
@@ -214,7 +195,7 @@ def update_tracking(video_id, title, processed, video_file_id):
             daily = json.load(f)
     if daily.get("date") != today:
         daily = {"date": today, "count": 0}
-    daily["count"] += 1
+    daily["count"] = int(daily["count"]) + 1
     with open("daily_upload_count.json", "w") as f:
         json.dump(daily, f, indent=2)
 
@@ -229,10 +210,9 @@ def main():
     print(f"{'='*60}\n")
 
     print("[1/5] Initializing APIs...")
-    yt_creds    = get_youtube_credentials()
-    drive_creds = get_drive_credentials()
-    youtube = build("youtube", "v3", credentials=yt_creds,    cache_discovery=False)
-    drive   = build("drive",   "v3", credentials=drive_creds, cache_discovery=False)
+    creds   = get_credentials()
+    youtube = build("youtube", "v3", credentials=creds, cache_discovery=False)
+    drive   = build("drive",   "v3", credentials=creds, cache_discovery=False)
     print("  ✅ APIs ready\n")
 
     print("[2/5] Scanning Drive for unprocessed videos...")
@@ -253,7 +233,7 @@ def main():
     print("[5/5] Uploading to YouTube...")
     title    = random.choice(TITLES)
     video_id = upload_to_youtube(youtube, local_path, title)
-    os.remove(local_path)   # Clean up temp file
+    os.remove(local_path)
 
     daily_count = update_tracking(video_id, title, processed, video["id"])
 
