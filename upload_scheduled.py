@@ -30,25 +30,24 @@ SCOPES = [
 ]
 
 TITLES = [
-    "What Happens Next Will Surprise You! 😲",
-    "A Magical Story You Can't Miss! 🪄",
-    "This Tale Will Touch Your Heart ❤️",
-    "When the Unexpected Happens... 🌟",
-    "A Fascinating Story for Everyone! 🎬",
-    "You Won't Believe THIS Happened! 😱",
-    "The Truth Nobody Tells You 🤔",
-    "This Will Blow Your Mind 🤯",
-    "A Story That Will Change Your Life 💫",
-    "Watch This Before It's Gone! ⚡",
+    "Speed Bumps at MAX SPEED! �💥",
+    "Epic Car Crashes & Fails! 💥🔥",
+    "Can This Car Survive The Drop? 🚙⬇️",
+    "Cars vs Giant Pit! 🕳️🚗",
+    "Most Satisfying Car Crashes 💥",
+    "Will It Cross The Bridge? 🌉�",
+    "Mega Ramp Jumps Gone Wrong! 😱🚀",
+    "Crushing Cars with Giant Hammer! 🔨💥",
+    "High Speed Police Chases! 🚓�",
+    "BeamNG.drive Crashes & Insane Moments! 🎮💥",
 ]
 
-DESCRIPTION = """Experience the magic of Hindi short stories. These tales are captivating,
-filled with life lessons, and spark joy and imagination.
-Subscribe for daily uploads! 🔔
+DESCRIPTION = """Epic car crashes, simulation fails, and satisfying destruction! 🚗💥
+Subscribe for daily car crash shorts! 🔔
 
-#HindiStories #Animation #ShortStories #KidsContent #MagicalTales"""
+#beamng #carcrashes #gaming #shorts #beamngdrive #carfails"""
 
-TAGS = ["Hindi animation", "short stories", "magical tales", "family content", "kids friendly", "Hindi"]
+TAGS = ["beamng drive", "car crashes", "gaming", "beamng crashes", "car fails", "simulation", "cars", "beamng drive shorts", "smash"]
 
 # ─── CREDENTIALS ───────────────────────────────────────────────────────────────
 
@@ -88,8 +87,13 @@ def get_unprocessed_videos(drive):
     """List all video files in Drive folder that haven't been uploaded yet."""
     processed = set()
     if os.path.exists(PROCESSED_LOG):
-        with open(PROCESSED_LOG, "r") as f:
-            processed = set(json.load(f))
+        try:
+            with open(PROCESSED_LOG, "r") as f:
+                data = json.load(f)
+                if isinstance(data, list):
+                    processed = set(data)
+        except (json.JSONDecodeError, ValueError):
+            pass
 
     videos = []
     page_token = None
@@ -177,8 +181,13 @@ def update_tracking(video_id, title, processed, video_file_id):
 
     history = []
     if os.path.exists("upload_history.json"):
-        with open("upload_history.json", "r") as f:
-            history = json.load(f)
+        try:
+            with open("upload_history.json", "r") as f:
+                data = json.load(f)
+                if isinstance(data, list):
+                    history = data
+        except (json.JSONDecodeError, ValueError):
+            pass
     history.append({
         "timestamp": datetime.now().isoformat(),
         "title": title,
@@ -191,8 +200,13 @@ def update_tracking(video_id, title, processed, video_file_id):
     today = datetime.now().strftime("%Y-%m-%d")
     daily = {"date": today, "count": 0}
     if os.path.exists("daily_upload_count.json"):
-        with open("daily_upload_count.json", "r") as f:
-            daily = json.load(f)
+        try:
+            with open("daily_upload_count.json", "r") as f:
+                data = json.load(f)
+                if isinstance(data, dict):
+                    daily = data
+        except (json.JSONDecodeError, ValueError):
+            pass
     if daily.get("date") != today:
         daily = {"date": today, "count": 0}
     daily["count"] = int(daily["count"]) + 1
