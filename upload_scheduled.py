@@ -30,24 +30,72 @@ SCOPES = [
 ]
 
 TITLES = [
-    "Speed Bumps at MAX SPEED! �💥",
-    "Epic Car Crashes & Fails! 💥🔥",
-    "Can This Car Survive The Drop? 🚙⬇️",
+    "Speed Bumps vs ALIEN TRACTOR BEAM! �🚗",
+    "100 MPH vs CONCRETE WALL! 🧱💥",
+    "Can This Car Survive The HUGE Drop? 🚙⬇️",
     "Cars vs Giant Pit! 🕳️🚗",
     "Most Satisfying Car Crashes 💥",
-    "Will It Cross The Bridge? 🌉�",
+    "Will It Cross The Bridge? 🌉🚗",
     "Mega Ramp Jumps Gone Wrong! 😱🚀",
     "Crushing Cars with Giant Hammer! 🔨💥",
-    "High Speed Police Chases! 🚓�",
+    "High Speed Police Chases! 🚓💨",
     "BeamNG.drive Crashes & Insane Moments! 🎮💥",
+    "Dodging 100 Spikes at Max Speed! 🎯🏎️",
+    "Can This Truck Pull 100 Cars? 🚛🚙",
+    "Cars vs Giant Stairs! 🪜🚗",
+    "Train Crash Simulation in BeamNG! 🚂💥",
+    "Escaping a Giant Tornado! 🌪️🏎️",
+    "Cars Trying to Drive on Ice! 🧊🚙",
+    "Can a Tank Stop a Train? 🚂🛡️",
+    "Cars vs Water Slides! 💦🎢",
+    "Driving Over 100 Speed Bumps! 💥🚙",
+    "Giant Bowling with Cars! 🎳🚗",
+    "Lava Pit Challenge in BeamNG! 🌋🔥",
+    "Cars vs Landmines! 💣💥",
+    "Supercars Destroyed in Seconds! 🏎️🔥",
+    "What Happens When You Ignore The Stop Sign? 🛑💥",
+    "Ultimate Car Destruction Derby! 💥🏎️",
+    "Will a Parachute Save This Dropping Car? 🪂⬇️",
+    "Impossible Leap Over 100 School Buses! 🚌🚀",
+    "Cars Competing in Squid Game! 🦑🟢",
+    "Can You Drive with Square Wheels? 🟩🚗",
+    "Cars vs Giant Mouse Traps! 🪤🚙",
+    "The Most Expensive Mistakes in BeamNG! 💸💥",
+    "Cars Completing the Impossible Track! 🏁�",
+    "Satisfying Slow-Mo Car Crashes! ⏱️�💥",
+    "Driving a Bus Off a Cliff! 🚌📉",
+    "Brake Failure on Steep Mountain! ⛰️📉",
+    "Cars vs Giant Blender! 🌪️🚗",
+    "Will The Suspension Break? 🛠️💥",
+    "Can a Mini Cooper Pull a Plane? ✈️🚗",
+    "Cars vs Anti-Tank Obstacles! 🚧💥",
+    "Traffic Jam Annihilation! 🚦🚙",
+    "Monster Truck crushes 50 Cars! 🛻💥",
+    "Driving a Couch at 100 MPH! 🛋️💨",
+    "Cars vs Giant Dominoes! 🧱🚗",
+    "Testing Insane Car Physics! 🧪🚗",
+    "Can This Car Drive Upside Down? 🙃🏎️",
+    "The Most Dangerous Road in the World! 🛣️⚠️",
+    "Zombie Apocalypse Survival Vehicles Test! 🧟‍♂️🚙",
+    "Driving Through a Virtual Hurricane! 🌀🚗",
+    "Cars vs Lava River! 🌋🛶",
+    "Will The Car Float or Sink? 🚤⬇️"
 ]
 
-DESCRIPTION = """Epic car crashes, simulation fails, and satisfying destruction! 🚗💥
-Subscribe for daily car crash shorts! 🔔
+DESCRIPTION = """Epic BeamNG Drive car crashes, simulation fails, and brutal destruction! 🚗💥
+Are you satisfied watching these high-speed crashes and insane physics simulations?
+Hit subscribe for daily satisfying crash shorts and gaming moments! 🔔
 
-#beamng #carcrashes #gaming #shorts #beamngdrive #carfails"""
+#beamng #carcrashes #gaming #shorts #beamngdrive #carfails #simulation #smash #destruction #satisfying #funnycrashes #crashtest"""
 
-TAGS = ["beamng drive", "car crashes", "gaming", "beamng crashes", "car fails", "simulation", "cars", "beamng drive shorts", "smash"]
+TAGS = [
+    "beamng", "beamng drive", "car crashes", "gaming", "beamng crashes",
+    "car fails", "simulation", "cars", "beamng drive shorts", "smash",
+    "destruction", "satisfying crashes", "crash test", "mega ramp",
+    "high speed crash", "funny car fails", "video games", "gta5 crashes",
+    "insane crashes", "bridge crash", "speed bumps", "police chase", "car smash",
+    "car jumping", "car stunts"
+]
 
 # ─── CREDENTIALS ───────────────────────────────────────────────────────────────
 
