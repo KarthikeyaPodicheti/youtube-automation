@@ -19,7 +19,7 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
 
 # ─── CONFIG ────────────────────────────────────────────────────────────────────
-DRIVE_FOLDER_ID = "1kocgFg0rzsMCtXsrWiOH_oditWshBpbV"
+DRIVE_FOLDER_ID = "1cvoTxqR16D3HdmlKc_RWYoPnNymVt0et"   # Carkrash2026 Drive folder
 PROCESSED_LOG   = "processed_videos.json"
 TOKEN_FILE      = "token.pickle"
 
