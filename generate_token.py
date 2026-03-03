@@ -17,6 +17,8 @@ from googleapiclient.discovery import build
 # Both scopes — Drive read + YouTube upload (must match upload_scheduled.py)
 SCOPES = [
     "https://www.googleapis.com/auth/youtube.upload",
+    "https://www.googleapis.com/auth/youtube.readonly",
+    "https://www.googleapis.com/auth/youtube.force-ssl",
     "https://www.googleapis.com/auth/drive.readonly",
 ]
 
